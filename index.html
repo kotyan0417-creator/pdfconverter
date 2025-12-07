@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>画像をPDFへ | 収益化対応拡張版</title>
+  <style>
+    :root {
+      --bg: #0f0a1f;
+      --panel: #17122b;
+      --accent: #7c4dff;
+      --accent-2: #b388ff;
+      --text: #eae6ff;
+      --muted: #bfb7e6;
+      --danger: #ff4d6d;
+      --border: #2a2244;
+
+      --base-font: 18px;
+      --small-font: 14px;
+      --h1-font: 26px;
+      --h2-font: 18px;
+      --control-font: 16px;
+      --btn-font: 18px;
+      --pad: 18px;
+      --pad-lg: 28px;
+      --radius: 16px;
+      --thumb: 100px;
+      --upsell-bg: #20183b;
+      --upsell-border: #3a2b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(900px 500px at 20% -10%, #1a1440 0%, #0f0a1f 60%, #0b0916 100%);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+      font-size: var(--base-font);
+    }
+    header {
+      padding: var(--pad-lg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 18px; justify-content: space-between;
+      background: linear-gradient(180deg, rgba(124,77,255,0.12), transparent);
+    }
+    .header-left { display: flex; gap: 16px; align-items: center; }
+    .logo {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 8px 24px rgba(124,77,255,0.35), inset 0 0 12px rgba(255,255,255,0.18);
+    }
+    h1 { margin: 0; font-size: var(--h1-font); letter-spacing: 0.4px; }
+
+    /* Pricing CTA */
+    .pricing { display: flex; gap: 10px; align-items: center; }
+    .pricing .cta-year {
+      background: linear-gradient(135deg, #6a38ff, var(--accent));
+      color: #fff; padding: 10px 14px; border-radius: 12px;
+      text-decoration: none; border: 1px solid #5a3ee6; font-weight: 700;
+    }
+    .pricing .cta-month {
+      background: #1c1533; color: #eae6ff; padding: 10px 14px; border-radius: 12px;
+      text-decoration: none; border: 1px solid var(--border);
+    }
+    .plan-toggle {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #1c1533; border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 14px; font-size: var(--control-font);
+      margin-left: 10px;
+    }
+    .plan-toggle input { transform: scale(1.2); }
+    .plan-label { font-size: var(--small-font); color: var(--muted); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: var(--pad-lg); }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.35);
+      position: relative;
+    }
+    .card h2 { margin: 0; padding: 16px 18px; font-size: var(--h2-font); border-bottom: 1px solid var(--border); color: #e9deff; }
+    .card .content { padding: var(--pad); }
+
+    .dropzone {
+      border: 2px dashed #4c3a89; border-radius: var(--radius); padding: 28px;
+      text-align: center; color: var(--muted); transition: 0.2s ease;
+      background: rgba(124,77,255,0.06);
+      font-size: var(--control-font);
+    }
+    .dropzone.dragover {
+      border-color: var(--accent); color: var(--text);
+      box-shadow: 0 0 0 4px rgba(124,77,255,0.25) inset;
+      background: rgba(124,77,255,0.12);
+    }
+    .hint { font-size: var(--small-font); color: var(--muted); margin-top: 10px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    button, select, input[type="number"], input[type="color"], input[type="text"] {
+      background: #1e1736; color: var(--text); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; font-size: var(--control-font);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #6a38ff);
+      border-color: #5a3ee6; font-weight: 600;
+      box-shadow: 0 10px 28px rgba(124,77,255,0.45);
+    }
+    button.danger { border-color: #823; background: #281327; color: #ffd8e5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .actions-right { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 18px; }
+    #downloadBtn { font-size: var(--btn-font); padding: 16px 22px; border-radius: 14px; min-width: 300px; }
+
+    .list { display: grid; gap: 12px; margin-top: 14px; }
+    .item {
+      display: grid; grid-template-columns: var(--thumb) 1fr auto; gap: 14px;
+      align-items: center; padding: 12px; border-radius: 12px;
+      background: #1a1431; border: 1px solid var(--border);
+    }
+    .item.dragging { opacity: 0.6; outline: 2px dashed #7c4dff; }
+    .item.dragover { outline: 2px dashed #b388ff; }
+    .thumb { width: var(--thumb); height: var(--thumb); border-radius: 10px; background: #0d0a18; overflow: hidden; display: grid; place-items: center; }
+    .thumb img { max-width: 100%; max-height: 100%; display: block; }
+    .meta { font-size: var(--small-font); color: var(--muted); }
+    .controls { display: flex; gap: 10px; }
+    .controls button { padding: 10px 12px; font-size: 15px; }
+
+    .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .setting { display: grid; gap: 8px; }
+    .setting label { font-size: var(--small-font); color: var(--muted); }
+
+    /* アップセルバナー */
+    .upsell {
+      flex: 1;
+      background: var(--upsell-bg);
+      border: 1px dashed var(--upsell-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #e9deff;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .upsell p { margin: 0; font-size: 15px; color: #dacfef; }
+    .upsell .cta {
+      white-space: nowrap;
+      background: #2a1f4b; border: 1px solid var(--border);
+      color: #eae6ff; padding: 10px 14px; border-radius: 10px; text-decoration: none;
+    }
+
+    footer { margin: 24px 0; text-align: center; color: var(--muted); font-size: var(--small-font); }
+    .badge { font-size: 13px; color: var(--muted); background: #160f2a; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); display: inline-block; }
+    input[type="file"] { font-size: var(--control-font); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>画像をPDFへ — 貼り付け & ドラッグ対応</h1>
+    </div>
+
+    <div class="pricing">
+      <a id="ctaYear" class="cta-year" href="https://example.com/lp-year-4000" target="_blank" rel="noopener">年4,000円で使い放題</a>
+      <a id="ctaMonth" class="cta-month" href="https://example.com/checkout-month-400" target="_blank" rel="noopener">月400円で始める</a>
+      <label class="plan-toggle" title="プロ体験のON/OFF（デモ）">
+        <span class="plan-label">プラン</span>
+        <span>無料</span>
+        <input id="proToggle" type="checkbox" />
+        <span>プロ</span>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h2>画像を追加</h2>
+        <div class="content">
+          <div id="dropzone" class="dropzone">
+            ここに画像をドラッグ & ドロップ、またはCtrl/Cmd+Vで貼り付け
+            <div class="hint">対応形式: PNG / JPG。複数可。スマホ写真の向きは自動補正（JPG）。</div>
+            <div style="margin-top:12px;">
+              <input id="fileInput" type="file" accept="image/png,image/jpeg" multiple />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="clearBtn" class="danger">すべてクリア</button>
+            <span class="badge" id="countBadge">0枚</span>
+            <span class="badge" id="limitBadge"></span>
+          </div>
+
+          <div class="list" id="list"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>PDF設定</h2>
+        <div class="content">
+          <div class="settings">
+            <div class="setting">
+              <label for="pagePreset">用紙サイズプリセット</label>
+              <select id="pagePreset">
+                <option value="A4">A4（210×297mm）</option>
+                <option value="A3">A3（297×420mm）</option>
+                <option value="B5">B5（182×257mm）</option>
+                <option value="POSTCARD">はがき（100×148mm）</option>
+                <option value="BUSINESSCARD">名刺（55×91mm）</option>
+              </select>
+            </div>
+            <div class="setting">
+              <label for="orientationSelect">ページ向き</label>
+              <select id="orientationSelect">
+                <option value="auto">自動（画像に合わせる）</option>
+                <option value="portrait">縦</option>
+                <option value="landscape">横</option>
+              </select>
+            </div>
+            <div class="setting">
+              <label for="marginInput">余白（mm）</label>
+              <input id="marginInput" type="number" min="0" max="50" step="1" value="10" />
+            </div>
+            <div class="setting">
+              <label for="fitSelect">配置モード</label>
+              <select id="fitSelect">
+                <option value="contain">収める（縦横比維持）</option>
+                <option value="cover">いっぱい（切り取りあり）</option>
+              </select>
+            </div>
+            <div class="setting">
+              <label for="bgColor">ページ背景色</label>
+              <input id="bgColor" type="color" value="#ffffff" />
+            </div>
+            <div class="setting">
+              <label for="dpiSelect">想定DPI（画像スケール）</label>
+              <select id="dpiSelect">
+                <option value="96">96（Web標準）</option>
+                <option value="150">150（きれい）</option>
+                <option value="300">300（印刷向け）</option>
+              </select>
+            </div>
+            <div class="setting">
+              <label for="perPageSelect">1ページに配置</label>
+              <select id="perPageSelect">
+                <option value="1">1枚（標準）</option>
+                <option value="2">2枚（上下）</option>
+                <option value="4">4枚（2×2）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions-right">
+            <div id="upsellBox" class="upsell" style="display:none;">
+              <p>プロならウォーターマークなし・上限解除・プリセット拡張・履歴保存などが使えます。</p>
+              <a class="cta" id="buyLink" href="https://example.com/lp-year-4000" target="_blank" rel="noopener">年4,000円で使い放題</a>
+            </div>
+            <button id="downloadBtn" class="primary" disabled>PDFを作成してダウンロード</button>
+          </div>
+
+          <div class="hint">作成はブラウザ内で完結。画像は外部送信されません。</div>
+        </div>
+      </section>
+    </div>
+
+    <footer></footer>
+  </main>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    // ---- Monetization config ----
+    const monetization = {
+      freeDailyLimit: 20,             // 無料の1日あたり生成回数
+      freeSessionImageCap: 50,        // 無料のセッション画像上限
+      watermarkText: 'Made with Image→PDF',
+      lpYearLink: 'https://example.com/lp-year-4000',       // 年額LP
+      checkoutMonthLink: 'https://example.com/checkout-month-400' // 月額決済
+    };
+
+    // ---- Page presets (mm) ----
+    const PAGE_PRESETS = {
+      A4:      { w: 210, h: 297, jsPDFFormat: 'a4' },
+      A3:      { w: 297, h: 420, jsPDFFormat: 'a3' },
+      B5:      { w: 182, h: 257, jsPDFFormat: [182, 257] },
+      POSTCARD:{ w: 100, h: 148, jsPDFFormat: [100, 148] },
+      BUSINESSCARD: { w: 55, h: 91, jsPDFFormat: [55, 91] }
+    };
+
+    const state = {
+      isPro: false,
+      items: [],               // {id, file, blobUrl, width, height, mime}
+      dailyCount: 0,
+      todayKey: new Date().toISOString().slice(0,10), // YYYY-MM-DD
+      dragSrcId: null          // 並び替え用
+    };
+
+    const el = {
+      ctaYear: document.getElementById('ctaYear'),
+      ctaMonth: document.getElementById('ctaMonth'),
+      proToggle: document.getElementById('proToggle'),
+      dropzone: document.getElementById('dropzone'),
+      fileInput: document.getElementById('fileInput'),
+      list: document.getElementById('list'),
+      clearBtn: document.getElementById('clearBtn'),
+      countBadge: document.getElementById('countBadge'),
+      limitBadge: document.getElementById('limitBadge'),
+      downloadBtn: document.getElementById('downloadBtn'),
+      upsellBox: document.getElementById('upsellBox'),
+      buyLink: document.getElementById('buyLink'),
+      marginInput: document.getElementById('marginInput'),
+      fitSelect: document.getElementById('fitSelect'),
+      bgColor: document.getElementById('bgColor'),
+      dpiSelect: document.getElementById('dpiSelect'),
+      orientationSelect: document.getElementById('orientationSelect'),
+      perPageSelect: document.getElementById('perPageSelect'),
+      pagePreset: document.getElementById('pagePreset'),
+    };
+
+    // ---- Init daily counter ----
+    function loadDailyCount() {
+      const key = 'dailyCount:' + state.todayKey;
+      const v = localStorage.getItem(key);
+      state.dailyCount = v ? parseInt(v, 10) || 0 : 0;
+    }
+    function saveDailyCount() {
+      const key = 'dailyCount:' + state.todayKey;
+      localStorage.setItem(key, String(state.dailyCount));
+    }
+
+    // ---- Plan toggle ----
+    el.proToggle.addEventListener('change', () => {
+      state.isPro = el.proToggle.checked;
+      renderLimit();
+      renderList();
+      updateUpsell();
+    });
+
+    function updateUpsell() {
+      const show = !state.isPro;
+      el.upsellBox.style.display = show ? 'flex' : 'none';
+      el.buyLink.href = monetization.lpYearLink;
+      el.ctaYear.href = monetization.lpYearLink;
+      el.ctaMonth.href = monetization.checkoutMonthLink;
+    }
+
+    function renderLimit() {
+      if (state.isPro) {
+        el.limitBadge.textContent = 'プロ: 制限なし・ウォーターマークなし';
+      } else {
+        el.limitBadge.textContent =
+          `無料: 生成 ${monetization.freeDailyLimit - state.dailyCount}回/日 残り・画像上限 ${monetization.freeSessionImageCap}枚`;
+      }
+    }
+
+    // ----- Drag & drop -----
+    el.dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      el.dropzone.classList.add('dragover');
+    });
+    el.dropzone.addEventListener('dragleave', () => {
+      el.dropzone.classList.remove('dragover');
+    });
+    el.dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      el.dropzone.classList.remove('dragover');
+      const files = [...e.dataTransfer.files].filter(f => /image\/(png|jpeg)/.test(f.type));
+      await addFilesWithCap(files);
+    });
+
+    // ----- File input -----
+    el.fileInput.addEventListener('change', async () => {
+      const files = [...el.fileInput.files].filter(f => /image\/(png|jpeg)/.test(f.type));
+      await addFilesWithCap(files);
+      el.fileInput.value = '';
+    });
+
+    // ----- Paste -----
+    window.addEventListener('paste', async (e) => {
+      const items = [...(e.clipboardData?.items || [])];
+      const files = [];
+      for (const it of items) {
+        if (it.kind === 'file' && /image\/(png|jpeg)/.test(it.type)) {
+          const f = it.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (files.length) await addFilesWithCap(files);
+    });
+
+    // ----- Add files with cap -----
+    async function addFilesWithCap(files) {
+      const cap = state.isPro ? Infinity : monetization.freeSessionImageCap;
+      const available = Math.max(cap - state.items.length, 0);
+      const addList = files.slice(0, available);
+      if (!state.isPro && files.length > available) {
+        alert(`無料プランの画像上限（${monetization.freeSessionImageCap}枚）に達しました。プロで上限解除できます。`);
+      }
+      if (addList.length) {
+        await addFiles(addList);
+      }
+    }
+
+    async function addFiles(files) {
+      for (const file of files) {
+        const { bitmap, width, height } = await readImageWithExif(file);
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(mime, 0.92);
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        state.items.push({
+          id: crypto.randomUUID(),
+          file,
+          blobUrl,
+          width,
+          height,
+          mime
+        });
+      }
+      renderList();
+    }
+
+    // ----- EXIF Orientation -----
+    async function readImageWithExif(file) {
+      const arrayBuf = await file.arrayBuffer();
+      let orientation = 1;
+      if (file.type === 'image/jpeg') {
+        try { orientation = parseExifOrientation(arrayBuf) || 1; } catch(e) { orientation = 1; }
+      }
+      const bitmap = await createImageBitmap(file);
+      if (orientation === 1) {
+        return { bitmap, width: bitmap.width, height: bitmap.height };
+      } else {
+        const w = bitmap.width, h = bitmap.height;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const rot90 = [5,6,7,8].includes(orientation);
+        canvas.width = rot90 ? h : w;
+        canvas.height = rot90 ? w : h;
+        ctx.save();
+        switch (orientation) {
+          case 2: ctx.translate(w, 0); ctx.scale(-1, 1); break;
+          case 3: ctx.translate(w, h); ctx.rotate(Math.PI); break;
+          case 4: ctx.translate(0, h); ctx.scale(1, -1); break;
+          case 5: ctx.rotate(0.5 * Math.PI); ctx.translate(0, -h); ctx.scale(1, -1); break;
+          case 6: ctx.rotate(0.5 * Math.PI); ctx.translate(0, -h); break;
+          case 7: ctx.rotate(1.5 * Math.PI); ctx.translate(-w, 0); ctx.scale(1, -1); break;
+          case 8: ctx.rotate(1.5 * Math.PI); ctx.translate(-w, 0); break;
+        }
+        ctx.drawImage(bitmap, 0, 0);
+        ctx.restore();
+        const fixedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+        const fixedBitmap = await createImageBitmap(fixedBlob);
+        return { bitmap: fixedBitmap, width: canvas.width, height: canvas.height };
+      }
+    }
+
+    function parseExifOrientation(arrayBuf) {
+      const dv = new DataView(arrayBuf);
+      let offset = 2; // skip SOI
+      while (offset < dv.byteLength) {
+        if (dv.getUint8(offset) !== 0xFF) break;
+        const marker = dv.getUint8(offset + 1);
+        const size = dv.getUint16(offset + 2);
+        if (marker === 0xE1) { // APP1
+          const exifHeader = new TextDecoder().decode(new Uint8Array(arrayBuf, offset + 4, 6));
+          if (exifHeader.startsWith('Exif\0\0')) {
+            const tiffOffset = offset + 10;
+            const endian = new TextDecoder().decode(new Uint8Array(arrayBuf, tiffOffset, 2));
+            const little = endian === 'II';
+            const getU16 = (o) => dv.getUint16(tiffOffset + o, little);
+            const getU32 = (o) => dv.getUint32(tiffOffset + o, little);
+            const ifd0Offset = getU32(4);
+            const entries = getU16(ifd0Offset);
+            for (let i = 0; i < entries; i++) {
+              const entry = ifd0Offset + 2 + i * 12;
+              const tag = getU16(entry);
+              if (tag === 0x0112) { // Orientation
+                const value = getU16(entry + 8);
+                return value;
+              }
+            }
+          }
+        }
+        offset += 2 + size;
+      }
+      return 1;
+    }
+
+    // ----- Render list (with drag reorder) -----
+    function renderList() {
+      el.list.innerHTML = '';
+      state.items.forEach((it) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.draggable = true;
+        div.dataset.id = it.id;
+        div.innerHTML = `
+          <div class="thumb"><img src="${it.blobUrl}" alt="thumbnail"></div>
+          <div>
+            <div class="meta">${it.file.name || it.mime} — ${it.width}×${it.height}px</div>
+          </div>
+          <div class="controls">
+            <button data-id="${it.id}" data-act="remove" class="danger">削除</button>
+          </div>
+        `;
+        // Drag handlers
+        div.addEventListener('dragstart', (e) => {
+          state.dragSrcId = it.id;
+          div.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        div.addEventListener('dragend', () => {
+          state.dragSrcId = null;
+          div.classList.remove('dragging');
+          el.list.querySelectorAll('.item').forEach(x => x.classList.remove('dragover'));
+        });
+        div.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (!state.dragSrcId || state.dragSrcId === it.id) return;
+          div.classList.add('dragover');
+          e.dataTransfer.dropEffect = 'move';
+        });
+        div.addEventListener('dragleave', () => div.classList.remove('dragover'));
+        div.addEventListener('drop', (e) => {
+          e.preventDefault();
+          div.classList.remove('dragover');
+          const fromId = state.dragSrcId;
+          const toId = it.id;
+          if (!fromId || fromId === toId) return;
+          const fromIdx = state.items.findIndex(x => x.id === fromId);
+          const toIdx = state.items.findIndex(x => x.id === toId);
+          const [moved] = state.items.splice(fromIdx, 1);
+          state.items.splice(toIdx, 0, moved);
+          renderList();
+        });
+
+        el.list.appendChild(div);
+      });
+      el.countBadge.textContent = `${state.items.length}枚`;
+      el.downloadBtn.disabled = state.items.length === 0;
+      renderLimit();
+
+      el.list.querySelectorAll('.controls button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const i = state.items.findIndex(x => x.id === id);
+          if (i < 0) return;
+          URL.revokeObjectURL(state.items[i].blobUrl);
+          state.items.splice(i, 1);
+          renderList();
+        });
+      });
+      updateUpsell();
+    }
+
+    // ----- Clear -----
+    el.clearBtn.addEventListener('click', () => {
+      state.items.forEach(x => URL.revokeObjectURL(x.blobUrl));
+      state.items = [];
+      renderList();
+    });
+
+    // ----- PDF generation with presets -----
+    el.downloadBtn.addEventListener('click', async () => {
+      if (state.items.length === 0) return;
+
+      // 無料の回数上限チェック
+      loadDailyCount();
+      if (!state.isPro && state.dailyCount >= monetization.freeDailyLimit) {
+        alert(`無料プランの1日あたり生成回数（${monetization.freeDailyLimit}回）に達しました。プロで無制限になります。`);
+        return;
+      }
+
+      const presetKey = el.pagePreset.value;
+      const preset = PAGE_PRESETS[presetKey] || PAGE_PRESETS.A4;
+
+      const margin = clamp(parseFloat(el.marginInput.value) || 0, 0, 50);
+      const fitMode = el.fitSelect.value;
+      const bg = el.bgColor.value;
+      const dpi = parseInt(el.dpiSelect.value, 10) || 96;
+      const orientationSetting = el.orientationSelect.value;
+      const perPage = parseInt(el.perPageSelect.value, 10) || 1;
+
+      // 初期ページはportraitで作ってから削除＋addPageでも良いが、今回は最初から
+      const doc = new jsPDF({ unit: 'mm', format: preset.jsPDFFormat || 'a4', orientation: 'portrait' });
+      let first = true;
+
+      for (let idx = 0; idx < state.items.length; idx += perPage) {
+        const slice = state.items.slice(idx, idx + perPage);
+        const autoLandscape = orientationSetting === 'auto' && slice.some(img => img.width > img.height);
+        const desiredOrientation = orientationSetting === 'portrait'
+          ? 'portrait'
+          : (orientationSetting === 'landscape' ? 'landscape' : (autoLandscape ? 'landscape' : 'portrait'));
+
+        if (first) {
+          if (desiredOrientation !== 'portrait') {
+            doc.deletePage(1);
+            doc.addPage(preset.jsPDFFormat || 'a4', desiredOrientation);
+          } else {
+            // 既存の1ページ（portrait）そのまま利用
+            // ただしA3等のサイズは既に適用済み
+          }
+          first = false;
+        } else {
+          doc.addPage(preset.jsPDFFormat || 'a4', desiredOrientation);
+        }
+
+        const pageW = desiredOrientation === 'portrait' ? preset.w : preset.h;
+        const pageH = desiredOrientation === 'portrait' ? preset.h : preset.w;
+
+        doc.setFillColor(bg);
+        doc.rect(0, 0, pageW, pageH, 'F');
+
+        const usableW = pageW - margin * 2;
+        const usableH = pageH - margin * 2;
+
+        const grid = layoutGrid(slice.length, usableW, usableH, perPage);
+        for (let i = 0; i < slice.length; i++) {
+          const img = slice[i];
+          const cellCol = i % grid.cols;
+          const cellRow = Math.floor(i / grid.cols);
+          const cellX = margin + cellCol * grid.cellW;
+          const cellY = margin + cellRow * grid.cellH;
+
+          const pxPerMm = dpi / 25.4;
+          const imgWmm = img.width / pxPerMm;
+          const imgHmm = img.height / pxPerMm;
+
+          const { w, h } = fitRect(imgWmm, imgHmm, grid.cellW, grid.cellH, fitMode);
+          const x = cellX + (grid.cellW - w) / 2;
+          const y = cellY + (grid.cellH - h) / 2;
+
+          const format = img.mime === 'image/png' ? 'PNG' : 'JPEG';
+          doc.addImage(img.blobUrl, format, x, y, w, h);
+        }
+
+        if (!state.isPro) {
+          doc.setTextColor(120, 100, 180);
+          doc.setFontSize(10);
+          doc.text(monetization.watermarkText, pageW - margin, pageH - 4, { align: 'right' });
+        }
+      }
+
+      const filename = `images_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`;
+      doc.save(filename);
+
+      state.dailyCount += 1;
+      saveDailyCount();
+      renderLimit();
+    });
+
+    // ----- Utils -----
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function fitRect(srcW, srcH, dstW, dstH, mode='contain') {
+      const rW = dstW / srcW, rH = dstH / srcH;
+      const scale = mode === 'cover' ? Math.max(rW, rH) : Math.min(rW, rH);
+      return { w: srcW * scale, h: srcH * scale };
+    }
+
+    function layoutGrid(n, w, h, perPage) {
+      let cols = 1, rows = 1;
+      if (perPage === 2) { cols = 1; rows = 2; }
+      else if (perPage === 4) { cols = 2; rows = 2; }
+      const cellW = w / cols;
+      const cellH = h / rows;
+      return { cols, rows, cellW, cellH };
+    }
+
+    // ---- Bootstrap ----
+    function init() {
+      loadDailyCount();
+      renderLimit();
+      renderList();
+      updateUpsell();
+    }
+    init();
+  </script>
+</body>
+</html>
